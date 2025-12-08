@@ -1,10 +1,11 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { SupabaseProvider } from './supabase-provider';
 
 export const metadata: Metadata = {
-  title: 'My Builder',
+  title: 'Brilliant Millennium',
 };
 
 export default function RootLayout({
@@ -17,6 +18,7 @@ export default function RootLayout({
       <body>
         <SupabaseProvider>
           <nav>
+            <Image src="/logo.png" alt="Brilliant Millennium" width={120} height={40} />
             <Link href="/">Home</Link>
             <Link href="/dashboard">Projects</Link>
             <Link href="/tasks">Tasks</Link>
