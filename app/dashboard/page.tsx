@@ -7,12 +7,14 @@ import { useSupabase } from '../supabase-provider';
 type Project = {
   id: number;
   name: string;
+  user_id: string;
 };
 
 export default function DashboardPage() {
   const supabase = useSupabase();
   const router = useRouter();
   const [checking, setChecking] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
@@ -26,6 +28,8 @@ export default function DashboardPage() {
         router.replace('/login');
         return;
       }
+
+      setUserId(userData.user.id);
 
       const { data, error } = await supabase.from('projects').select('*');
       if (error) {
@@ -43,11 +47,11 @@ export default function DashboardPage() {
   async function handleAddProject(e: FormEvent) {
     e.preventDefault();
     setErrorMsg(null);
-    if (!newName.trim()) return;
+    if (!newName.trim() || !userId) return;
 
     const { data, error } = await supabase
       .from('projects')
-      .insert({ name: newName })
+      .insert({ name: newName, user_id: userId })
       .select();
 
     if (error) {
@@ -89,7 +93,7 @@ export default function DashboardPage() {
 
   if (checking) {
     return (
-      <main style={{ padding: 24 }}>
+      <main>
         <h1>Dashboard</h1>
         <p>Loading…</p>
       </main>
@@ -97,19 +101,17 @@ export default function DashboardPage() {
   }
 
   return (
-    <main style={{ padding: 24 }}>
+    <main>
       <h1>Dashboard</h1>
 
-      <form onSubmit={handleAddProject} style={{ marginBottom: 16 }}>
+      <form onSubmit={handleAddProject}>
         <input
           type="text"
           placeholder="New project name"
           value={newName}
           onChange={e => setNewName(e.target.value)}
         />
-        <button type="submit" style={{ marginLeft: 8 }}>
-          Add project
-        </button>
+        <button type="submit">Add project</button>
       </form>
 
       <p>Projects loaded: {projects.length}</p>
@@ -129,7 +131,6 @@ export default function DashboardPage() {
                   <button
                     type="button"
                     onClick={() => handleSaveEdit(project.id)}
-                    style={{ marginLeft: 4 }}
                   >
                     Save
                   </button>
@@ -139,7 +140,6 @@ export default function DashboardPage() {
                       setEditingId(null);
                       setEditingName('');
                     }}
-                    style={{ marginLeft: 4 }}
                   >
                     Cancel
                   </button>
@@ -173,7 +173,6 @@ export default function DashboardPage() {
                         prev.filter(p => p.id !== project.id)
                       );
                     }}
-                    style={{ marginLeft: 4 }}
                   >
                     Delete
                   </button>

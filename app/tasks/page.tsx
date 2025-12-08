@@ -7,12 +7,14 @@ import { useSupabase } from '../supabase-provider';
 type Task = {
   id: number;
   title: string;
+  user_id: string;
 };
 
 export default function TasksPage() {
   const supabase = useSupabase();
   const router = useRouter();
   const [checking, setChecking] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState('');
@@ -26,6 +28,8 @@ export default function TasksPage() {
         router.replace('/login');
         return;
       }
+
+      setUserId(userData.user.id);
 
       const { data, error } = await supabase.from('tasks').select('*');
       if (error) {
@@ -43,11 +47,11 @@ export default function TasksPage() {
   async function handleAddTask(e: FormEvent) {
     e.preventDefault();
     setErrorMsg(null);
-    if (!newTitle.trim()) return;
+    if (!newTitle.trim() || !userId) return;
 
     const { data, error } = await supabase
       .from('tasks')
-      .insert({ title: newTitle })
+      .insert({ title: newTitle, user_id: userId })
       .select();
 
     if (error) {
@@ -89,7 +93,7 @@ export default function TasksPage() {
 
   if (checking) {
     return (
-      <main style={{ padding: 24 }}>
+      <main>
         <h1>Tasks</h1>
         <p>Loading…</p>
       </main>
@@ -97,19 +101,17 @@ export default function TasksPage() {
   }
 
   return (
-    <main style={{ padding: 24 }}>
+    <main>
       <h1>Tasks</h1>
 
-      <form onSubmit={handleAddTask} style={{ marginBottom: 16 }}>
+      <form onSubmit={handleAddTask}>
         <input
           type="text"
           placeholder="New task title"
           value={newTitle}
           onChange={e => setNewTitle(e.target.value)}
         />
-        <button type="submit" style={{ marginLeft: 8 }}>
-          Add task
-        </button>
+        <button type="submit">Add task</button>
       </form>
 
       <p>Tasks loaded: {tasks.length}</p>
@@ -129,7 +131,6 @@ export default function TasksPage() {
                   <button
                     type="button"
                     onClick={() => handleSaveEdit(task.id)}
-                    style={{ marginLeft: 4 }}
                   >
                     Save
                   </button>
@@ -139,7 +140,6 @@ export default function TasksPage() {
                       setEditingId(null);
                       setEditingTitle('');
                     }}
-                    style={{ marginLeft: 4 }}
                   >
                     Cancel
                   </button>
@@ -173,7 +173,6 @@ export default function TasksPage() {
                         prev.filter(t => t.id !== task.id)
                       );
                     }}
-                    style={{ marginLeft: 4 }}
                   >
                     Delete
                   </button>
