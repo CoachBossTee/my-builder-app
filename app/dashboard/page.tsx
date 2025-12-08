@@ -17,6 +17,7 @@ export default function DashboardPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingName, setEditingName] = useState('');
@@ -47,6 +48,7 @@ export default function DashboardPage() {
   async function handleAddProject(e: FormEvent) {
     e.preventDefault();
     setErrorMsg(null);
+    setSuccessMsg(null);
     if (!newName.trim() || !userId) return;
 
     const { data, error } = await supabase
@@ -61,6 +63,8 @@ export default function DashboardPage() {
 
     if (data && data.length > 0) {
       setProjects(prev => [...prev, data[0] as Project]);
+      setSuccessMsg('Project added successfully!');
+      setTimeout(() => setSuccessMsg(null), 3000);
     }
     setNewName('');
   }
@@ -68,6 +72,7 @@ export default function DashboardPage() {
   async function handleSaveEdit(id: number) {
     if (!editingName.trim()) return;
     setErrorMsg(null);
+    setSuccessMsg(null);
 
     const { data, error } = await supabase
       .from('projects')
@@ -85,17 +90,41 @@ export default function DashboardPage() {
       setProjects(prev =>
         prev.map(p => (p.id === id ? updated : p))
       );
+      setSuccessMsg('Project updated successfully!');
+      setTimeout(() => setSuccessMsg(null), 3000);
     }
 
     setEditingId(null);
     setEditingName('');
   }
 
+  async function handleDelete(id: number) {
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      setErrorMsg(error.message);
+      return;
+    }
+
+    setProjects(prev => prev.filter(p => p.id !== id));
+    setSuccessMsg('Project deleted successfully!');
+    setTimeout(() => setSuccessMsg(null), 3000);
+  }
+
   if (checking) {
     return (
       <main>
         <h1>Dashboard</h1>
-        <p>Loading…</p>
+        <div className="loading-container">
+          <div className="loading"></div>
+          <span>Loading your projects...</span>
+        </div>
       </main>
     );
   }
@@ -103,6 +132,9 @@ export default function DashboardPage() {
   return (
     <main>
       <h1>Dashboard</h1>
+
+      {errorMsg && <div className="error">{errorMsg}</div>}
+      {successMsg && <div className="success">{successMsg}</div>}
 
       <form onSubmit={handleAddProject}>
         <input
@@ -114,73 +146,64 @@ export default function DashboardPage() {
         <button type="submit">Add project</button>
       </form>
 
-      <p>Projects loaded: {projects.length}</p>
-      {errorMsg && <p>Error: {errorMsg}</p>}
-
-      {!errorMsg && projects.length > 0 && (
-        <ul>
-          {projects.map(project => (
-            <li key={project.id}>
-              {editingId === project.id ? (
-                <>
-                  <input
-                    type="text"
-                    value={editingName}
-                    onChange={e => setEditingName(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleSaveEdit(project.id)}
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingId(null);
-                      setEditingName('');
-                    }}
-                  >
-                    Cancel
-                  </button>
-                </>
-              ) : (
-                <>
-                  {project.name}{' '}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingId(project.id);
-                      setEditingName(project.name);
-                    }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      const { error } = await supabase
-                        .from('projects')
-                        .delete()
-                        .eq('id', project.id);
-
-                      if (error) {
-                        setErrorMsg(error.message);
-                        return;
-                      }
-
-                      setProjects(prev =>
-                        prev.filter(p => p.id !== project.id)
-                      );
-                    }}
-                  >
-                    Delete
-                  </button>
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
+      {projects.length === 0 ? (
+        <div className="empty-state">
+          <h3>No projects yet</h3>
+          <p>Create your first project to get started!</p>
+        </div>
+      ) : (
+        <>
+          <p>Projects: {projects.length}</p>
+          <ul>
+            {projects.map(project => (
+              <li key={project.id}>
+                {editingId === project.id ? (
+                  <>
+                    <input
+                      type="text"
+                      value={editingName}
+                      onChange={e => setEditingName(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleSaveEdit(project.id)}
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingId(null);
+                        setEditingName('');
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {project.name}{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingId(project.id);
+                        setEditingName(project.name);
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(project.id)}
+                    >
+                      Delete
+                    </button>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </main>
   );
