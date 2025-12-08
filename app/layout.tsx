@@ -16,19 +16,11 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <SupabaseProvider>
-          <nav style={{ padding: 12, borderBottom: '1px solid #ccc' }}>
-            <Link href="/" style={{ marginRight: 8 }}>
-              Home
-            </Link>
-            <Link href="/dashboard" style={{ marginRight: 8 }}>
-              Projects
-            </Link>
-            <Link href="/tasks" style={{ marginRight: 8 }}>
-              Tasks
-            </Link>
-            <Link href="/profile" style={{ marginRight: 8 }}>
-              Profile
-            </Link>
+          <nav>
+            <Link href="/">Home</Link>
+            <Link href="/dashboard">Projects</Link>
+            <Link href="/tasks">Tasks</Link>
+            <Link href="/profile">Profile</Link>
             <Link href="/login">Login</Link>
           </nav>
           {children}
