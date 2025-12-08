@@ -16,6 +16,8 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState('');
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
 
   useEffect(() => {
     async function load() {
@@ -59,6 +61,32 @@ export default function TasksPage() {
     setNewTitle('');
   }
 
+  async function handleSaveEdit(id: number) {
+    if (!editingTitle.trim()) return;
+    setErrorMsg(null);
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .update({ title: editingTitle })
+      .eq('id', id)
+      .select();
+
+    if (error) {
+      setErrorMsg(error.message);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      const updated = data[0] as Task;
+      setTasks(prev =>
+        prev.map(t => (t.id === id ? updated : t))
+      );
+    }
+
+    setEditingId(null);
+    setEditingTitle('');
+  }
+
   if (checking) {
     return (
       <main style={{ padding: 24 }}>
@@ -86,10 +114,72 @@ export default function TasksPage() {
 
       <p>Tasks loaded: {tasks.length}</p>
       {errorMsg && <p>Error: {errorMsg}</p>}
+
       {!errorMsg && tasks.length > 0 && (
         <ul>
           {tasks.map(task => (
-            <li key={task.id}>{task.title}</li>
+            <li key={task.id}>
+              {editingId === task.id ? (
+                <>
+                  <input
+                    type="text"
+                    value={editingTitle}
+                    onChange={e => setEditingTitle(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleSaveEdit(task.id)}
+                    style={{ marginLeft: 4 }}
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingId(null);
+                      setEditingTitle('');
+                    }}
+                    style={{ marginLeft: 4 }}
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  {task.title}{' '}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingId(task.id);
+                      setEditingTitle(task.title);
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const { error } = await supabase
+                        .from('tasks')
+                        .delete()
+                        .eq('id', task.id);
+
+                      if (error) {
+                        setErrorMsg(error.message);
+                        return;
+                      }
+
+                      setTasks(prev =>
+                        prev.filter(t => t.id !== task.id)
+                      );
+                    }}
+                    style={{ marginLeft: 4 }}
+                  >
+                    Delete
+                  </button>
+                </>
+              )}
+            </li>
           ))}
         </ul>
       )}
