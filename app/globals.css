@@ -2,48 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 222 47% 11%;
-    --foreground: 0 0% 95%;
-    --card: 222 47% 11%;
-    --card-foreground: 0 0% 95%;
-    --popover: 222 47% 15%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 340 82% 52%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 262 52% 47%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 340 82% 52%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 340 82% 52%;
-    --radius: 0.5rem;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    min-height: 100vh;
-  }
+body {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  min-height: 100vh;
+  color: white;
 }
 
 nav {
   background: linear-gradient(90deg, #e91e63 0%, #9c27b0 25%, #673ab7 50%, #2196f3 75%, #00bcd4 100%);
   padding: 1rem 2rem;
-  box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
   display: flex;
-  align-items: center;
   gap: 2rem;
 }
 
@@ -51,11 +19,4 @@ nav a {
   color: white;
   text-decoration: none;
   font-weight: 600;
-  transition: all 0.3s;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-nav a:hover {
-  transform: translateY(-2px);
-  text-shadow: 0 4px 8px rgba(255, 255, 255, 0.4);
 }
